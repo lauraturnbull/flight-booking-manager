@@ -81,6 +81,7 @@ class Flight:
 
 
 class Aircraft:
+	'''An aircraft with a given registration'''
 
 	def __init__(self, registration):
 		self._registration = registration
@@ -114,11 +115,11 @@ class Boeing777(Aircraft):
 
 
 def make_flights():
-	'''Make a Flight object for testing instead of creating at the REPL
+	'''Make Flight objects for testing instead of creating at the REPL
 		Args:
 			None
 		Returns:
-			Flight object f 
+			Flight objects f,g 
 	'''
 	f = Flight("BA758", AirbusA319("G-EUPT"))
 	f.allocate_seat('12A', 'Guido van Rossum')
