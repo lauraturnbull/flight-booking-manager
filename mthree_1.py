@@ -5,7 +5,13 @@ class Flight:
     """A flight with a particular passenger aircraft."""
 
     def __init__(self, number, aircraft):
-        """Initialise and check form of flight number"""
+        """Initialise and check form of flight number
+        Args:
+            number: String that represents the flight number. Takes the form AB1(234)
+             where AB is the airline (must be 2 uppercase letters only) and 1234 is
+             the flight number that may take a value up to 9999
+            aircraft: The aircraft type
+            """
 
         if not number[:2].isalpha():
             raise ValueError("No airline code in '{}' ".format(number))
@@ -97,6 +103,14 @@ class Aircraft:
 
 class AirbusA319(Aircraft):
 
+    def available_routes(self):
+        # TODO take these routes from an API
+        routes = {'EDB': ['LCY', 'LGW', 'LHR'],
+                  'LCY': ['ABZ', 'GLA', 'EDB'],
+                  'LGW': ['ABZ', 'EDB', 'GLA'],
+                  'LHR': ['ABZ', 'EDB', 'GLA']}
+        return routes
+
     def model(self):
         return "Airbus A319"
 
@@ -105,6 +119,13 @@ class AirbusA319(Aircraft):
 
 
 class Boeing777(Aircraft):
+
+    def available_routes(self):
+        # TODO take these routes from an API
+        routes = {'EDB': ['LHR'],
+                  'LGW': ['BFS', 'EDB', 'GLA'],
+                  'LHR': ['BFS', 'EDB', 'GLA']}
+        return routes
 
     def model(self):
         return "Boeing 777"
@@ -145,7 +166,7 @@ def console_card_printer(passenger, seat, flight_number, aircraft):
     output = "| Name: {0}"		\
              "  Flight: {1}"	\
              "  Seat: {2}" 		\
-             "  Aircraft{3}" 	\
+             "  Aircraft: {3}" 	\
              "  |".format(passenger, flight_number, seat, aircraft)
 
     banner = '+' + '-' * (len(output) - 2) + '+'
