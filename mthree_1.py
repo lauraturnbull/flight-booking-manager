@@ -68,6 +68,9 @@ class Flight:
 
         self._seating[row][letter] = passenger
 
+    def available_routes(self, dept):
+        return self._aircraft.available_routes(dept)
+
     def num_available_seats(self):
         return sum(sum(1 for s in row.values() if s is None)
                    for row in self._seating
@@ -103,13 +106,21 @@ class Aircraft:
 
 class AirbusA319(Aircraft):
 
-    def available_routes(self):
+    def available_routes(self, dept):
+        """Returns available destinations for this aircraft type from a departure location
+        Args:
+            dept: String representing departure airline code
+        """
         # TODO take these routes from an API
         routes = {'EDB': ['LCY', 'LGW', 'LHR'],
                   'LCY': ['ABZ', 'GLA', 'EDB'],
                   'LGW': ['ABZ', 'EDB', 'GLA'],
                   'LHR': ['ABZ', 'EDB', 'GLA']}
-        return routes
+        try:
+            return routes.get(dept)
+
+        except ValueError:
+            raise ValueError("Departures from '{}' are not available on Airbus A319".format(dept))
 
     def model(self):
         return "Airbus A319"
@@ -120,12 +131,16 @@ class AirbusA319(Aircraft):
 
 class Boeing777(Aircraft):
 
-    def available_routes(self):
+    def available_routes(self, dept):
         # TODO take these routes from an API
         routes = {'EDB': ['LHR'],
                   'LGW': ['BFS', 'EDB', 'GLA'],
                   'LHR': ['BFS', 'EDB', 'GLA']}
-        return routes
+        try:
+            return routes.get(dept)
+
+        except ValueError:
+            raise ValueError("Departures from '{}' are not available on Boeing 777".format(dept))
 
     def model(self):
         return "Boeing 777"
