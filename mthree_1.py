@@ -4,7 +4,7 @@
 class Flight:
     """A flight with a particular passenger aircraft."""
 
-    def __init__(self, number, aircraft):
+    def __init__(self, number, dept, dest, aircraft):
         """Initialise and check form of flight number
         Args:
             number: String that represents the flight number. Takes the form AB1(234)
@@ -24,6 +24,8 @@ class Flight:
 
         self._number = number
         self._aircraft = aircraft
+        self._dept = dept
+        self._dest = dest
 
         rows, seats = self._aircraft.seating_plan()
         # We start with None as lists are zero-indexed but the seating plan is one-indexed
@@ -68,8 +70,8 @@ class Flight:
 
         self._seating[row][letter] = passenger
 
-    def flight_route(self, dept, dest):
-        return self._aircraft.flight_route(dept, dest)
+    def flight_route(self):
+        return self._aircraft.flight_route(self._dept, self._dest)
 
     def num_available_seats(self):
         return sum(sum(1 for s in row.values() if s is None)
@@ -88,6 +90,20 @@ class Flight:
                 passenger = self._seating[row][letter]
                 if passenger is not None:
                     yield (passenger, "{}{}".format(row, letter))
+
+    # def _seat_generator(self):
+    #
+    #     row_numbers, seat_letters = self._aircraft.seating_plan()
+    #     for row in row_numbers:
+    #         for letter in seat_letters:
+    #             return(row,letter)
+    def _seat_generator(self):
+        row_numbers, seat_letters = self._aircraft.seating_plan()
+        for row in row_numbers:
+            for letter in seat_letters:
+                passenger = self._seating[row][letter]
+                if passenger is None:
+                    yield ("{}{}".format(row, letter))
 
 
 class Aircraft:
@@ -167,14 +183,14 @@ def make_flights():
         Returns:
             Flight objects f,g
     """
-    f = Flight("BA758", AirbusA319("G-EUPT"))
+    f = Flight("BA758", "EDB", "LCY", AirbusA319("G-EUPT"))
     # f.allocate_seat('12A', 'Guido van Rossum')
     # f.allocate_seat('12F', 'John Smith')
     f.allocate_seat('15C', 'Anders Hejlsberg')
     f.allocate_seat('1C', 'Paul McCarthy')
     f.allocate_seat('1F', 'Richard Hickey')
 
-    g = Flight("AF72", Boeing777("F-GSPS"))
+    g = Flight("AF72", "EDB", "LHR", Boeing777("F-GSPS"))
     g.allocate_seat('55K', 'Guido van Rossum')
     g.allocate_seat('33G', 'John Smith')
     g.allocate_seat('4B', 'Anders Hejlsberg')
@@ -182,10 +198,33 @@ def make_flights():
 
     return f, g
 
-def create_flight():
-    # try create Airbus A319 object first.
-    existing_flights = {}
 
+def create_flight():
+    info = []
+    existing_flights = []
+    # generate_seats = ._seat_generator()
+    with open('Passengers.txt', 'r') as data:
+        passenger_info =[line.split(',') for line in data]
+
+    for booking in passenger_info:
+        if (booking[3]) not in existing_flights:
+            existing_flights.append(booking[3])
+            if booking[4].startswith("A"):
+                flightobj = Flight(booking[3], booking[1], booking[2], AirbusA319(booking[5]))
+                seat = (flightobj._seat_generator().__next__())
+                flightobj.allocate_seat(seat, booking[0])
+
+            else:
+                flightobj = Flight(booking[3], booking[1], booking[2], Boeing777(booking[5]))
+                seat = (flightobj._seat_generator().__next__())
+                flightobj.allocate_seat(seat, booking[0])
+
+        else:
+            # only assigns to one type of flight. Fix this.
+            seat = (flightobj._seat_generator().__next__())
+            flightobj.allocate_seat(seat, booking[0])
+
+    return flightobj
 
 
 def console_card_printer(passenger, seat, flight_number, aircraft):
