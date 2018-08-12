@@ -68,8 +68,8 @@ class Flight:
 
         self._seating[row][letter] = passenger
 
-    def available_routes(self, dept):
-        return self._aircraft.available_routes(dept)
+    def flight_route(self, dept, dest):
+        return self._aircraft.flight_route(dept, dest)
 
     def num_available_seats(self):
         return sum(sum(1 for s in row.values() if s is None)
@@ -103,24 +103,40 @@ class Aircraft:
         rows, row_seats = self.seating_plan()
         return len(rows) * len(row_seats)
 
+    def available_routes(self, dept):
+        return self.avail_routes(dept)
+
+    def flight_route(self, dept, dest):
+        """Returns the route for this flight object
+        Args:
+            dept: String representing departure airport code
+            dest: String representing destination airport code
+
+        Returns:
+              Tuple of (dept, dest) if available
+              Error message if not available
+        """
+        routes = self.available_routes(dept)
+        if dest in routes:
+            return (dept, dest)
+        else:
+            return "Flights from {} to {} are not available.".format(dept, dest)
+
 
 class AirbusA319(Aircraft):
 
-    def available_routes(self, dept):
+    def avail_routes(self, dept):
         """Returns available destinations for this aircraft type from a departure location
         Args:
-            dept: String representing departure airline code
+            dept: String representing departure airport code
         """
         # TODO take these routes from an API
         routes = {'EDB': ['LCY', 'LGW', 'LHR'],
                   'LCY': ['ABZ', 'GLA', 'EDB'],
                   'LGW': ['ABZ', 'EDB', 'GLA'],
                   'LHR': ['ABZ', 'EDB', 'GLA']}
-        try:
-            return routes.get(dept)
 
-        except ValueError:
-            raise ValueError("Departures from '{}' are not available on Airbus A319".format(dept))
+        return routes.get(dept, "Departures from {} are not available on {}".format(dept, __class__.__name__))
 
     def model(self):
         return "Airbus A319"
@@ -131,16 +147,13 @@ class AirbusA319(Aircraft):
 
 class Boeing777(Aircraft):
 
-    def available_routes(self, dept):
+    def avail_routes(self, dept):
         # TODO take these routes from an API
         routes = {'EDB': ['LHR'],
                   'LGW': ['BFS', 'EDB', 'GLA'],
                   'LHR': ['BFS', 'EDB', 'GLA']}
-        try:
-            return routes.get(dept)
 
-        except ValueError:
-            raise ValueError("Departures from '{}' are not available on Boeing 777".format(dept))
+        return routes.get(dept, "Departures from {} are not available on {}".format(dept, __class__.__name__))
 
     def model(self):
         return "Boeing 777"
@@ -155,8 +168,8 @@ def make_flights():
             Flight objects f,g
     """
     f = Flight("BA758", AirbusA319("G-EUPT"))
-    f.allocate_seat('12A', 'Guido van Rossum')
-    f.allocate_seat('12F', 'John Smith')
+    # f.allocate_seat('12A', 'Guido van Rossum')
+    # f.allocate_seat('12F', 'John Smith')
     f.allocate_seat('15C', 'Anders Hejlsberg')
     f.allocate_seat('1C', 'Paul McCarthy')
     f.allocate_seat('1F', 'Richard Hickey')
@@ -168,6 +181,11 @@ def make_flights():
     g.allocate_seat('4A', 'Paul McCarthy')
 
     return f, g
+
+def create_flight():
+    # try create Airbus A319 object first.
+    existing_flights = {}
+
 
 
 def console_card_printer(passenger, seat, flight_number, aircraft):
