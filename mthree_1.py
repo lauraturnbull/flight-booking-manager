@@ -210,7 +210,7 @@ def create_flight():
             else:
                 flightobj = Flight(_number, _dept, _dest, Boeing777(_reg))
                 _seat = (flightobj._seat_generator().__next__())
-                flightobj.allocate_seat(_seat, booking[0])
+                flightobj.allocate_seat(_seat,_name)
                 flight_objects.append((flightobj, _number))
         else:
             flightindex = existing_flights.index(_number)
