@@ -91,12 +91,6 @@ class Flight:
                 if passenger is not None:
                     yield (passenger, "{}{}".format(row, letter))
 
-    # def _seat_generator(self):
-    #
-    #     row_numbers, seat_letters = self._aircraft.seating_plan()
-    #     for row in row_numbers:
-    #         for letter in seat_letters:
-    #             return(row,letter)
     def _seat_generator(self):
         row_numbers, seat_letters = self._aircraft.seating_plan()
         for row in row_numbers:
@@ -200,31 +194,31 @@ def make_flights():
 
 
 def create_flight():
-    info = []
-    existing_flights = []
-    # generate_seats = ._seat_generator()
+    flight_objects = []
     with open('Passengers.txt', 'r') as data:
-        passenger_info =[line.split(',') for line in data]
+        bookings =[line.split(',') for line in data]
 
-    for booking in passenger_info:
-        if (booking[3]) not in existing_flights:
-            existing_flights.append(booking[3])
-            if booking[4].startswith("A"):
-                flightobj = Flight(booking[3], booking[1], booking[2], AirbusA319(booking[5]))
-                seat = (flightobj._seat_generator().__next__())
-                flightobj.allocate_seat(seat, booking[0])
-
+    for item in bookings:
+        _name, _dept, _dest, _number, _aircraft, _reg = item[0], item[1], item[2], item[3], item[4], item[5]
+        existing_flights = [x[1] for x in flight_objects]
+        if _number not in existing_flights:
+            if _aircraft.startswith("A"):
+                flightobj = Flight(_number, _dept, _dest, AirbusA319(_reg))
+                _seat = (flightobj._seat_generator().__next__())
+                flightobj.allocate_seat(_seat, _name)
+                flight_objects.append((flightobj, _number))
             else:
-                flightobj = Flight(booking[3], booking[1], booking[2], Boeing777(booking[5]))
-                seat = (flightobj._seat_generator().__next__())
-                flightobj.allocate_seat(seat, booking[0])
-
+                flightobj = Flight(_number, _dept, _dest, Boeing777(_reg))
+                _seat = (flightobj._seat_generator().__next__())
+                flightobj.allocate_seat(_seat, booking[0])
+                flight_objects.append((flightobj, _number))
         else:
-            # only assigns to one type of flight. Fix this.
-            seat = (flightobj._seat_generator().__next__())
-            flightobj.allocate_seat(seat, booking[0])
-
-    return flightobj
+            flightindex = existing_flights.index(_number)
+            flightobj = flight_objects[flightindex][0]
+            _seat = (flightobj._seat_generator().__next__())
+            flightobj.allocate_seat(_seat, _name)
+    print(flight_objects)
+    return flight_objects
 
 
 def console_card_printer(passenger, seat, flight_number, aircraft):
