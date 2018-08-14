@@ -70,6 +70,9 @@ class Flight:
 
         self._seating[row][letter] = passenger
 
+    def available_routes(self):
+        return self._aircraft.available_routes()
+
     def flight_route(self):
         return self._aircraft.flight_route(self._dept, self._dest)
 
@@ -80,7 +83,7 @@ class Flight:
 
     def make_boarding_cards(self, card_printer):
         for passenger, seat in sorted(self._passenger_seats()):
-            card_printer(passenger, seat, self.number(), self.aircraft_model())
+            card_printer(passenger, seat, self._dept, self._dest, self.number(), self.aircraft_model())
 
     def _passenger_seats(self):
         """A generator for an iterable series of passenger seating allocations"""
@@ -113,8 +116,8 @@ class Aircraft:
         rows, row_seats = self.seating_plan()
         return len(rows) * len(row_seats)
 
-    def available_routes(self, dept):
-        return self.avail_routes(dept)
+    def available_routes(self):
+        return self.avail_routes()
 
     def flight_route(self, dept, dest):
         """Returns the route for this flight object
@@ -126,16 +129,18 @@ class Aircraft:
               Tuple of (dept, dest) if available
               Error message if not available
         """
-        routes = self.available_routes(dept)
-        if dest in routes:
-            return (dept, dest)
+        routes = self.available_routes()
+
+        if routes.get(dept) and dest in routes.get(dept):
+            return dept, dest
         else:
-            return "Flights from {} to {} are not available.".format(dept, dest)
+            #return "Flights from {} to {} are not available.".format(dept, dest)
+            return -1
 
 
 class AirbusA319(Aircraft):
 
-    def avail_routes(self, dept):
+    def avail_routes(self):
         """Returns available destinations for this aircraft type from a departure location
         Args:
             dept: String representing departure airport code
@@ -145,8 +150,7 @@ class AirbusA319(Aircraft):
                   'LCY': ['ABZ', 'GLA', 'EDB'],
                   'LGW': ['ABZ', 'EDB', 'GLA'],
                   'LHR': ['ABZ', 'EDB', 'GLA']}
-
-        return routes.get(dept, "Departures from {} are not available on {}".format(dept, __class__.__name__))
+        return routes
 
     def model(self):
         return "Airbus A319"
@@ -157,13 +161,12 @@ class AirbusA319(Aircraft):
 
 class Boeing777(Aircraft):
 
-    def avail_routes(self, dept):
+    def avail_routes(self):
         # TODO take these routes from an API
         routes = {'EDB': ['LHR'],
                   'LGW': ['BFS', 'EDB', 'GLA'],
                   'LHR': ['BFS', 'EDB', 'GLA']}
-
-        return routes.get(dept, "Departures from {} are not available on {}".format(dept, __class__.__name__))
+        return routes
 
     def model(self):
         return "Boeing 777"
@@ -201,27 +204,40 @@ def create_flight():
     for item in bookings:
         _name, _dept, _dest, _number, _aircraft, _reg = item[0], item[1], item[2], item[3], item[4], item[5]
         existing_flights = [x[1] for x in flight_objects]
-        if _number not in existing_flights:
-            if _aircraft.startswith("A"):
+
+        if _number not in existing_flights and _aircraft == "AirbusA319":
+            test_craft = AirbusA319(_reg)
+            if test_craft.flight_route(_dept, _dest)!= -1:
+
                 flightobj = Flight(_number, _dept, _dest, AirbusA319(_reg))
                 _seat = (flightobj._seat_generator().__next__())
                 flightobj.allocate_seat(_seat, _name)
                 flight_objects.append((flightobj, _number))
-            else:
+
+        elif _number not in existing_flights and _aircraft == "Boeing777":
+            test_craft = AirbusA319(_reg)
+            if test_craft.flight_route(_dept, _dest)!= -1:
+
                 flightobj = Flight(_number, _dept, _dest, Boeing777(_reg))
                 _seat = (flightobj._seat_generator().__next__())
-                flightobj.allocate_seat(_seat,_name)
+                flightobj.allocate_seat(_seat, _name)
                 flight_objects.append((flightobj, _number))
+
         else:
             flightindex = existing_flights.index(_number)
             flightobj = flight_objects[flightindex][0]
-            _seat = (flightobj._seat_generator().__next__())
-            flightobj.allocate_seat(_seat, _name)
+            if flightobj.flight_route() == (_dept, _dest):
+                _seat = (flightobj._seat_generator().__next__())
+                flightobj.allocate_seat(_seat, _name)
+            else:
+                print("Flight {} has route {}-{}. Passenger {} not added to flight as incorrect"
+                      " DEPT or DEST codes input.".format(_number, _dept, _dest, _name))
+
     print(flight_objects)
     return flight_objects
 
 
-def console_card_printer(passenger, seat, flight_number, aircraft):
+def console_card_printer(passenger, seat, dept, dest, flight_number, aircraft):
     """Creates and prints boarding passes for passengers in alphabetical order
     Args:
         passenger: the passenger name
@@ -230,10 +246,10 @@ def console_card_printer(passenger, seat, flight_number, aircraft):
         aircraft: the aircraft ID
     """
     output = "| Name: {0}"		\
-             "  Flight: {1}"	\
-             "  Seat: {2}" 		\
-             "  Aircraft: {3}" 	\
-             "  |".format(passenger, flight_number, seat, aircraft)
+             "  Flight: {1}, {2}-{3}"	\
+             "  Seat: {4}" 		\
+             "  Aircraft: {5}" 	\
+             "  |".format(passenger, flight_number, dept, dest, seat, aircraft)
 
     banner = '+' + '-' * (len(output) - 2) + '+'
     border = '|' + ' ' * (len(output) - 2) + '|'
