@@ -1,3 +1,5 @@
 Guido van Rossum,EDB,LCY,AB123,AirbusA319,Reg
-Jamie Halvorson, EDB, LST,AB12,AirbusA319,Reg
-John Smith, EDB, LCY,AB12,AirbusA319,Reg
+Lauren Clark,EDB,LCY,AB123,AirbusA319,Reg
+Michelle Turner,EDB,LST,AB11,AirbusA319,Reg
+Jamie Halvorson,EDB,LCY,AB12,AirbusA319,Reg
+John Smith,EDB,LST,AB12,AirbusA319,Reg
