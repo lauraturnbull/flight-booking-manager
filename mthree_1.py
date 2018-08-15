@@ -127,24 +127,19 @@ class Aircraft:
 
         Returns:
               Tuple of (dept, dest) if available
-              Error message if not available
+              -1 if the route is not available
         """
         routes = self.available_routes()
 
         if routes.get(dept) and dest in routes.get(dept):
             return dept, dest
         else:
-            #return "Flights from {} to {} are not available.".format(dept, dest)
             return -1
 
 
 class AirbusA319(Aircraft):
 
     def avail_routes(self):
-        """Returns available destinations for this aircraft type from a departure location
-        Args:
-            dept: String representing departure airport code
-        """
         # TODO take these routes from an API
         routes = {'EDB': ['LCY', 'LGW', 'LHR'],
                   'LCY': ['ABZ', 'GLA', 'EDB'],
@@ -175,28 +170,17 @@ class Boeing777(Aircraft):
         return range(1, 56), "ABCDEFGHJK"
 
 
-def make_flights():
-    """	Make Flight objects for testing instead of creating at the REPL
-        Returns:
-            Flight objects f,g
-    """
-    f = Flight("BA758", "EDB", "LCY", AirbusA319("G-EUPT"))
-    # f.allocate_seat('12A', 'Guido van Rossum')
-    # f.allocate_seat('12F', 'John Smith')
-    f.allocate_seat('15C', 'Anders Hejlsberg')
-    f.allocate_seat('1C', 'Paul McCarthy')
-    f.allocate_seat('1F', 'Richard Hickey')
-
-    g = Flight("AF72", "EDB", "LHR", Boeing777("F-GSPS"))
-    g.allocate_seat('55K', 'Guido van Rossum')
-    g.allocate_seat('33G', 'John Smith')
-    g.allocate_seat('4B', 'Anders Hejlsberg')
-    g.allocate_seat('4A', 'Paul McCarthy')
-
-    return f, g
-
-
 def create_flight():
+    """Creates Flight objects for new flights and assigns the next available seat to the passenger.
+        If a Flight object with a given flight number already exists the Passenger is added to this flight.
+        Reads:
+            A text file with booking information in the order(comma-separated):
+            NAME,DEPARTURE CODE,DESTINATION CODE,FLIGHT NUMBER,AIRCRAFT TYPE,REGISTRATION
+        Returns:
+            A list of flight objects with passengers assigned to seats.
+            Warnings printed to REPL if invalid routes are input or if the route does not match the
+            existing flight's.
+    """
     flight_objects = []
     with open('Passengers.txt', 'r') as data:
         bookings =[line.split(',') for line in data]
