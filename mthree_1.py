@@ -213,6 +213,9 @@ def create_flight():
                 _seat = (flightobj._seat_generator().__next__())
                 flightobj.allocate_seat(_seat, _name)
                 flight_objects.append((flightobj, _number))
+            else:
+                print("Passenger {} not added to flight {}. There are no {} flights from {}-{}."
+                      .format( _name, _number, _aircraft, _dept, _dest))
 
         elif _number not in existing_flights and _aircraft == "Boeing777":
             test_craft = AirbusA319(_reg)
@@ -227,14 +230,14 @@ def create_flight():
             flightindex = existing_flights.index(_number)
             flightobj = flight_objects[flightindex][0]
             if flightobj.flight_route() == (_dept, _dest):
+
                 _seat = (flightobj._seat_generator().__next__())
                 flightobj.allocate_seat(_seat, _name)
             else:
-                print("Flight {} has route {}-{}. Passenger {} not added to flight as incorrect"
-                      " DEPT or DEST codes input.".format(_number, _dept, _dest, _name))
+                print("Passenger {} not added to flight {} as incorrect DEPT or DEST codes input. "
+                      "This flight has route {}-{}.".format( _name, _number, _dept, _dest))
 
-    print(flight_objects)
-    return flight_objects
+    return [i[0] for i in flight_objects]
 
 
 def console_card_printer(passenger, seat, dept, dest, flight_number, aircraft):
